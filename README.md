@@ -35,6 +35,12 @@ To download a specific model and version: `/models/<model_name>/<model_version>`
 
 To download the hyper-parameters YAML file: `/models/<model_name>/<model_version>/hparams`
 
+Alternatively, you can use the [Gunicorn](https://gunicorn.org/) WSGI server:
+
+```bash
+$ gunicorn -w 4 -b 0.0.0.0:8000 'qute_api.app:app' 
+```
+
 ## Example client
 
 See `qute_api/qute_client/example.py`.

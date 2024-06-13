@@ -10,6 +10,7 @@
 # ******************************************************************************
 
 import configparser
+import sys
 from pathlib import Path
 
 from flask import Flask, jsonify, send_from_directory
@@ -19,7 +20,12 @@ app = Flask(__name__)
 
 # Read the configuration file
 config = configparser.ConfigParser()
-config.read("config.ini")
+config_file_path = Path(__file__).parent / "config.ini"
+if not config_file_path.is_file():
+    print("config.ini not found!")
+    sys.exit(1)
+
+config.read(Path(__file__).parent / "config.ini")
 
 # Get the models directory from the configuration file
 MODELS_DIR = config.get("settings", "MODELS_DIR", fallback="/tmp")
@@ -123,4 +129,4 @@ def download_model_hparams(model_name, version):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
