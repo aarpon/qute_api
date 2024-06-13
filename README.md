@@ -29,6 +29,12 @@ To test, point your browser to http://127.0.0.1:5000.
 
 To get a list of modes: `/models`
 
-To get a list of versions of a specific model: `/models/model_name`
+To get a list of versions of a specific model: `/models/<model_name>`
 
-To download a specific model and version: `/models/model_name/model_version`
+To download a specific model and version: `/models/<model_name>/<model_version>`
+
+To download the hyper-parameters YAML file: `/models/<model_name>/<model_version>/hparams`
+
+## Example client
+
+See `qute_api/qute_client/example.py`.
