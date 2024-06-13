@@ -30,11 +30,12 @@ force_grid_wrap = 0
 use_parentheses = true
 line_length = 88
 combine_as_imports = true
-known_third_party = ["flask"]
+known_third_party = ["flask", "requests"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 Flask = "^3.0.3"
+requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"

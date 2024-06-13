@@ -43,16 +43,22 @@ def list_models():
     """List all models and their versions."""
     models = {}
     if MODELS_DIR.exists() and MODELS_DIR.is_dir():
-        for model_path in MODELS_DIR.iterdir():
-            if model_path.is_dir():
-                models[model_path.name] = sorted(
-                    [
-                        version.name
-                        for version in model_path.iterdir()
-                        if version.is_dir()
-                    ]
-                )
-        return jsonify(models)
+        for model_path in sorted(MODELS_DIR.iterdir()):
+            if model_path.is_dir() and model_path.name != ".git":
+                versions = {}
+                for version_path in sorted(model_path.iterdir()):
+                    if version_path.is_dir():
+                        files = sorted(
+                            [
+                                file.name
+                                for file in version_path.iterdir()
+                                if file.is_file()
+                            ]
+                        )
+                        versions[version_path.name] = files
+                models[model_path.name] = versions
+        sorted_models = {k: models[k] for k in sorted(models)}
+        return jsonify(sorted_models)
     else:
         return jsonify({"error": "Models directory not found"}), 404
 
@@ -62,9 +68,13 @@ def list_model_versions(model_name):
     """List all versions of a specified model."""
     model_path = MODELS_DIR / model_name
     if model_path.is_dir():
-        versions = sorted(
-            [version.name for version in model_path.iterdir() if version.is_dir()]
-        )
+        versions = {}
+        for version_path in sorted(model_path.iterdir()):
+            if version_path.is_dir():
+                files = sorted(
+                    [file.name for file in version_path.iterdir() if file.is_file()]
+                )
+                versions[version_path.name] = files
         return jsonify({model_name: versions})
     else:
         return jsonify({"error": "Model not found"}), 404
@@ -73,6 +83,8 @@ def list_model_versions(model_name):
 @app.route("/models/<model_name>/<version>", methods=["GET"])
 def download_model(model_name, version):
     """Download a specific version of a model."""
+    if version.isdigit():
+        version = f"version_{int(version):03}"
     model_version_path = MODELS_DIR / model_name / version
     if model_version_path.is_dir():
         filename = list(model_version_path.glob("*.ckpt"))
@@ -85,6 +97,26 @@ def download_model(model_name, version):
             )
         return send_from_directory(
             str(model_version_path), filename[0].name, as_attachment=True
+        )
+    else:
+        return jsonify({"error": "Model or version not found"}), 404
+
+
+@app.route("/models/<model_name>/<version>/hparams", methods=["GET"])
+def download_model_hparams(model_name, version):
+    """Download the hyper-parameters of a specific version of a model."""
+    if version.isdigit():
+        version = f"version_{int(version):03}"
+    model_version_path = MODELS_DIR / model_name / version
+    if model_version_path.is_dir():
+        filename = model_version_path / "hparams.yaml"
+        if not filename.is_file():
+            return (
+                jsonify({"error": f"Could not find hyper-parameters file"}),
+                404,
+            )
+        return send_from_directory(
+            str(model_version_path), filename.name, as_attachment=True
         )
     else:
         return jsonify({"error": "Model or version not found"}), 404
